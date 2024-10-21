@@ -1,0 +1,25 @@
+﻿<!-- _AdminSidebar.cshtml -->
+<div class="sidebar-heading">
+    <img src="~/css/img/gosfps.jpg" alt="Logo" />
+    Panel de Administración
+</div>
+<ul class="list-group list-group-flush">
+    <li class="btn-custom">
+        <a class="link-no-style" asp-controller="Home" asp-action="Index"> Inicio </a>
+    </li>
+    <li class="btn-custom">
+        <a class="link-no-style" asp-controller="Home" asp-action="Admin_home"> Estadisticas </a>
+    </li>
+    <li class="btn-custom">
+        <a class="link-no-style" asp-area=" " asp-controller="Rols" asp-action="Index"> Roles </a>
+    </li>
+    <li class="btn-custom">
+        <a class="link-no-style" asp-controller="Usuarios" asp-action="Index"> Usuarios </a>
+    </li>
+    @if (User.IsInRole("2"))
+    {
+        <li class="btn-custom">
+            <a class="link-no-style" asp-controller="Permisos" asp-action="ManageView"> Permisos </a>
+        </li>
+    }
+</ul>

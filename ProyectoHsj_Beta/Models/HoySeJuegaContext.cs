@@ -42,6 +42,8 @@ public partial class HoySeJuegaContext : DbContext
     public virtual DbSet<TituloReporte> TituloReportes { get; set; }
 
     public virtual DbSet<Usuario> Usuarios { get; set; }
+   
+    public DbSet<HistorialReserva> HistorialReservas { get; set;}
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) { }
     
@@ -349,6 +351,25 @@ public partial class HoySeJuegaContext : DbContext
                 .HasForeignKey(d => d.IdRol)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__USUARIO__ID_rol__412EB0B6");
+        });
+
+        modelBuilder.Entity<HistorialReserva>(entity =>
+        {
+            entity.ToTable("HistorialReservas");
+
+            entity.HasKey(e => e.IdHistorialReserva);
+
+            entity.Property(e => e.IdReserva).IsRequired();
+            entity.Property(e => e.ID_usuario).IsRequired();
+            entity.Property(e => e.FechaReserva).IsRequired();
+            entity.Property(e => e.HoraInicio).IsRequired();
+            entity.Property(e => e.HoraFin).IsRequired();
+            entity.Property(e => e.EstadoReserva)
+                  .IsRequired()
+                  .HasMaxLength(50);
+            entity.Property(e => e.FechaEliminacion).IsRequired();
+            entity.Property(e => e.NombreUsuario).HasMaxLength(100);
+            entity.Property(e => e.TelefonoUsuario).HasMaxLength(15);
         });
 
         OnModelCreatingPartial(modelBuilder);

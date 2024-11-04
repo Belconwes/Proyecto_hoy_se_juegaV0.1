@@ -6,10 +6,7 @@
         color: aliceblue;
     }
 </style>
-@if (User.IsInRole("2")) // Admin
-{
-    <p></p>
-}
+
 
 <!-- Carrusel -->
 <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
@@ -33,9 +30,21 @@
             <img src="~/css/img/cancha y pelota.jpeg" class="d-block w-100" alt="...">
         </div>
         <!-- Botón centrado personalizado -->
-        <div class="carousel-caption d-flex justify-content-center align-items-center h-100">
-            <a asp-controller="Reserva" asp-action="ReservaView" class="btn btn-custom">Reserva Acá</a>
-        </div>
+        @if (User.Identity.IsAuthenticated)
+        {
+            <div class="carousel-caption d-flex justify-content-center align-items-center h-100">
+                <a asp-controller="Reservas" asp-action="Index" class="btn btn-custom">Reserva Acá</a>
+            </div>
+
+        }
+        else
+        {
+            <div class="alert alert-warning" role="alert">
+                Debes estar autenticado para crear una reserva.
+                <a href="/Acces/Login">Inicia sesión</a> para continuar.
+            </div>
+        }
+
     </div>
     <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
         <span class="carousel-control-prev-icon" aria-hidden="true"></span>

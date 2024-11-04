@@ -30,6 +30,8 @@ namespace ProyectoHsj_Beta.Controllers
 
             return Json(data);
         }
+
+
         public IActionResult Index()
         {
             return View();

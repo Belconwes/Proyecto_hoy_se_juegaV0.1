@@ -15,7 +15,7 @@ public partial class HorarioDisponible
 
     public TimeOnly HoraFin { get; set; }
 
-    public bool? DisponibleHorario { get; set; }
+    public bool? DisponibleHorario { get; set; } = true;
 
     public virtual Cancha IdCanchaNavigation { get; set; } = null!;
 

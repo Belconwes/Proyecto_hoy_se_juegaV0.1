@@ -2,9 +2,7 @@
 {
     public class ReservaViewModel
     {
-        public int CanchaId { get; set; }
-        public DateTime FechaReserva { get; set; }
-        public int HorarioId { get; set; }
-        public int UsuarioId { get; set; }
+        public DateTime Fecha { get; set; }
+        public int IdHorarioDisponible { get; set; }
     }
 }

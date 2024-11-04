@@ -16,6 +16,12 @@
     <li class="btn-custom">
         <a class="link-no-style" asp-controller="Usuarios" asp-action="Index"> Usuarios </a>
     </li>
+    <li class="btn-custom">
+        <a class="link-no-style" asp-controller="Horario" asp-action="ManageView"> Horarios </a>
+    </li>
+    <li class="btn-custom">
+        <a class="link-no-style" asp-controller="Admin" asp-action="Index"> Reservas </a>
+    </li>
     @if (User.IsInRole("2"))
     {
         <li class="btn-custom">

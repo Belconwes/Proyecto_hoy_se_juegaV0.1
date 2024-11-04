@@ -1,3 +1,5 @@
+Use Hsj;
+
 CREATE TABLE ACCION_REALIZADA (
     ID_accion_realizada int NOT NULL IDENTITY,
     Titulo_Accion_Realizada nvarchar(70) NOT NULL,

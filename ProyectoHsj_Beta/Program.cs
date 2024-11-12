@@ -6,9 +6,12 @@ using FluentEmail.Core;
 using FluentEmail.Smtp;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using ProyectoHsj_Beta.Repositories;
+using ProyectoHsj_Beta.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddHttpContextAccessor(); // Para acceder al contexto HTTP en el servicio
+builder.Services.AddScoped<AuditoriaService>(); // Registrar el servicio de auditoria
 builder.Services.AddScoped<IPermisoRepository, PermisoRepository>();
 builder.Services.AddControllersWithViews();
 //Servicio de conexion con la database
@@ -18,7 +21,9 @@ builder.Services.AddDbContext<HoySeJuegaContext>(Options =>
 });
 
 // seteo de contraseña de aplicacion
-//  dotnet user-secrets set "smtp:Password" "dzur havz dgxu vtgd"
+// dotnet user-secrets set "smtp:Password" "dzur havz dgxu vtgd"
+
+// dotnet user-secrets set "smtp:Password" "ibgx iwca lltn tduv"
 builder.Services.AddFluentEmail(builder.Configuration["Smtp:Username"], "HoySeJuega")
     .AddSmtpSender(new SmtpClient(builder.Configuration["Smtp:Host"])
     {
@@ -64,6 +69,8 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("AdminOrEmployed", policy =>
        policy.RequireRole("2", "3")); // Admin (2) y Employed (3)
 });
+
+builder.Services.AddScoped<MercadoPagoService>();
 
 var app = builder.Build();
 

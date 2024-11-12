@@ -1,4 +1,5 @@
-﻿@model List<ProyectoHsj_Beta.Models.Reserva>
+﻿@using System.Security.Claims
+@model List<ProyectoHsj_Beta.Models.Reserva>
 
 @{
     ViewData["Title"] = "Mis Reservas";
@@ -8,6 +9,14 @@
 
 <!-- Contenedor del Calendario -->
 <div id="calendar"></div>
+
+<!-- Estilo para el fondo blanco del calendario -->
+<style>
+    #calendar {
+        background-color: white;
+        padding: 20px;
+    }
+</style>
 
 <!-- Scripts necesarios para FullCalendar -->
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
@@ -40,16 +49,26 @@
 
 <script>
     let selectedDate = "";
+
+    // Función para convertir la hora a formato 12 horas con AM/PM
+    function formatTimeTo12Hour(hour24) {
+        const [hour, minute] = hour24.split(':');
+        let hour12 = (hour % 12) || 12; // Convierte la hora a formato de 12 horas
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        return `${hour12}:${minute} ${ampm}`;
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         var calendarEl = document.getElementById('calendar');
         var calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
+            locale: 'es', // Establece el calendario en español
             validRange: {
                 start: new Date() // Bloquea todas las fechas anteriores a hoy
             },
             selectable: true,
             events: '/Reservas/GetReservas',
-            
+
             // Mostrar modal de selección de horario al seleccionar una fecha
             select: function (info) {
                 $('#selectTimeModal').modal('show');
@@ -71,8 +90,10 @@
                         data.forEach(slot => {
                             const option = document.createElement('option');
                             // Usar el ID y la hora de inicio en `value` y el rango horario en `textContent`
+                            const startTimeFormatted = formatTimeTo12Hour(slot.horaInicio); // Formatear la hora de inicio
+                            const endTimeFormatted = formatTimeTo12Hour(slot.horaFin);     // Formatear la hora de fin
                             option.value = `${slot.idHorarioDisponible},${slot.horaInicio}`;
-                            option.textContent = `${slot.horaInicio} - ${slot.horaFin}`;
+                            option.textContent = `${startTimeFormatted} - ${endTimeFormatted}`;
                             timeSlotSelect.appendChild(option);
                         });
                     })
@@ -82,31 +103,45 @@
             eventClick: function (info) {
                 const eventId = info.event.id;
                 const estado = info.event.extendedProps.estado;
+                const creadorId = info.event.extendedProps.creadorId;
+                console.log("El creador : " + creadorId)
+                const userId = '@User.FindFirstValue(ClaimTypes.NameIdentifier)';
+                console.log("Usuario auntenticado: " + userId)
+                const esAdmin = '@User.IsInRole("Admin")' === 'True';
                 console.log(`Evento seleccionado: ID = ${eventId}, Estado = ${estado}`);
-                let buttons = `<button class="btn btn-warning me-2" onclick="cancelarReserva(${eventId})">Cancelar</button>`;
+                let buttons = ``;
+
+                // Asegúrate de que la comparación sea correcta, convirtiendo ambos valores a enteros si es necesario
+                if (estado === "PENDIENTE" && (parseInt(userId) === parseInt(creadorId))) {
+                    buttons += `<button class="btn btn-warning me-2" onclick="cancelarReserva(${eventId})">Cancelar</button>`;
+                }
 
                 if (estado === "CANCELADA") {
                     buttons += `<button class="btn btn-danger" onclick="eliminarReserva(${eventId})">Eliminar</button>`;
                 }
 
                 const modalContent = `
-                        <div class="modal fade" id="reservationActionModal" tabindex="-1">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Acciones para la Reserva</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <p>Estado: ${estado}</p>
-                                    </div>
-                                    <div class="modal-footer">
-                                        ${buttons}
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            <div class="modal fade" id="reservationActionModal" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Acciones para la Reserva</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Estado: ${estado}</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            ${buttons}
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>`;
+                            </div>`;
+                const existingModal = document.getElementById('reservationActionModal');
+                if (existingModal) {
+                    existingModal.remove();
+                }
 
                 document.body.insertAdjacentHTML('beforeend', modalContent);
                 const modal = new bootstrap.Modal(document.getElementById('reservationActionModal'));
@@ -131,11 +166,19 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(reserva)
                 })
-                    .then(response => {
-                        if (response.ok) {
+                    .then(response => response.json()) // Obtener la respuesta como JSON
+                    .then(data => {
+                        console.log("ID de Reserva:", data.idReserva);
+                        
+                        if (data.success) {
                             alert('Reserva creada exitosamente.');
                             $('#selectTimeModal').modal('hide');
                             calendar.refetchEvents();
+
+                            // Redirigir a la vista ConfirmarReserva con el idReserva
+                            const reservaId = data.idReserva;  // Suponiendo que la respuesta contiene el ID de la reserva
+                            window.location.href = `/Pagoes/Index?reservaId=${reservaId}`;
+                            
                         } else {
                             alert('Error al crear la reserva.');
                         }
@@ -146,7 +189,7 @@
             }
         });
     });
-    
+
     function cancelarReserva(id) {
         fetch(`/Reservas/Cancel/${id}`, { method: 'POST' })
             .then(response => {

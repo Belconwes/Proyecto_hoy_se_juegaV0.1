@@ -1,0 +1,21 @@
+﻿@model ConfiguracionPago
+
+@{
+    Layout = "~/Views/Shared/Layout_admin.cshtml";
+    ViewData["Title"] = "Eliminar Configuración de Pago";
+}
+
+<h2>Eliminar Configuración de Pago</h2>
+
+<h4>¿Estás seguro de que deseas eliminar esta configuración?</h4>
+<div>
+    <h5>ID: @Model.IdConfiguracion</h5>
+    <h5>Monto Seña: @Model.MontoSena</h5>
+    <h5>Fecha de Modificación: @Model.FechaModificacion</h5>
+</div>
+
+<form asp-action="DeleteConfirmed">
+    <input type="hidden" asp-for="IdConfiguracion" />
+    <input type="submit" value="Eliminar" class="btn btn-danger" />
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>

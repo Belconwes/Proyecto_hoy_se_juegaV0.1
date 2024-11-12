@@ -5,6 +5,7 @@ using ProyectoHsj_Beta.DTO;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using ProyectoHsj_Beta.ViewsModels;
+using ProyectoHsj_Beta.Services;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using static ProyectoHsj_Beta.DTO.ReservationPostDTO;
 namespace ProyectoHsj_Beta.Controllers
@@ -12,10 +13,11 @@ namespace ProyectoHsj_Beta.Controllers
     public class Reservas : Controller
     {
         private readonly HoySeJuegaContext _context;
-        public Reservas(HoySeJuegaContext context)
+        private readonly MercadoPagoService _MercadoPagoService;
+        public Reservas(HoySeJuegaContext context, MercadoPagoService mercadoPagoService)
         {
             _context = context;
-
+            _MercadoPagoService = mercadoPagoService;
         }
 
         // GET: Reservas/Create
@@ -61,7 +63,7 @@ namespace ProyectoHsj_Beta.Controllers
 
             _context.Reservas.Add(nuevaReserva);
             await _context.SaveChangesAsync();
-            return Ok("Reserva creada exitosamente.");
+            return Json(new { success = true, idReserva = nuevaReserva.IdReserva });
         }
         public async Task<IActionResult> Index()
         {
@@ -71,23 +73,29 @@ namespace ProyectoHsj_Beta.Controllers
 
         public async Task<IActionResult> GetReservas()
         {
+            var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)); // Asegúrate de obtener el ID correctamente
+            var isAdmin = User.IsInRole("admin");
+
+            // Cargamos las reservas desde la base de datos
             var reservasDb = await _context.Reservas
                 .Where(r => r.FechaReserva.HasValue)
                 .ToListAsync();
-
-            var reservas = reservasDb.Select(r => new
+            var reservas = reservasDb.Select(r => new Evento
             {
                 id = r.IdReserva,
                 title = "Reserva " + r.IdReserva,
                 start = r.FechaReserva.Value.ToString("yyyy-MM-ddTHH:mm"),
                 end = r.FechaReserva.Value.AddHours(1).ToString("yyyy-MM-ddTHH:mm"),
+                creadorId = r.IdUsuario,
                 color = ObtenerColorEstado(r.IdEstadoReserva),
                 estado = ObtenerEstado(r.IdEstadoReserva)
-            }).ToList();
+            })
+            .Where(e => e.estado != "CANCELADA" || e.creadorId == currentUserId || isAdmin) // Filtra según visibilidad
+            .ToList();
 
             var horariosDisponibles = await _context.HorarioDisponibles
                 .Where(h => h.DisponibleHorario == true)
-                .Select(h => new
+                .Select(h => new Evento
                 {
                     id = h.IdHorarioDisponible,
                     title = "Disponible",
@@ -110,6 +118,7 @@ namespace ProyectoHsj_Beta.Controllers
                 })
                 .ToListAsync();
 
+            // Ahora puedes concatenar ambas listas sin problemas
             var eventos = reservas.Concat(horariosDisponibles).ToList();
 
             return Json(eventos);
@@ -149,6 +158,22 @@ namespace ProyectoHsj_Beta.Controllers
             // Cambiar el return para incluir ID y las horas
             return Json(horarios);
         }
+        [HttpPost]
+        public async Task<IActionResult> PagarReserva(int reservaId, decimal monto)
+        {
+            Console.WriteLine("La id reserva es :" + reservaId);
+            Console.WriteLine("El monto de pago es:" + monto);
+            var pago = new Pago
+            {
+                IdReserva = reservaId,
+                MontoPago = monto
+            };
+
+            var preferencia = await _MercadoPagoService.CrearPreferenciaDePago(pago);
+
+            // Redirige al usuario al URL de Mercado Pago
+            return Redirect(preferencia.InitPoint);
+        }
 
         [HttpPost]
         public async Task<IActionResult> Cancel(int id)
@@ -183,6 +208,10 @@ namespace ProyectoHsj_Beta.Controllers
             return Ok("Reserva cancelada exitosamente.");
         }
 
+       
+       
+
+
         [HttpDelete]
         public async Task<IActionResult> DeleteReserva(int id)
         {
@@ -216,13 +245,6 @@ namespace ProyectoHsj_Beta.Controllers
 
             return Ok("Reserva eliminada correctamente.");
         }
-
-
-
-
-
-
-
 
     }
 }

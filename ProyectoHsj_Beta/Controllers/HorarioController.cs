@@ -26,6 +26,57 @@ namespace ProyectoHsj_Beta.Controllers
             return View();
         }
 
+        public async Task<IActionResult> GenerarFechasYHorariosSemana()
+        {
+            var horarios = new List<(TimeOnly Inicio, TimeOnly Fin)>();
+            for (int hora = 12; hora < 23; hora++)
+            {
+                horarios.Add((new TimeOnly(hora, 0), new TimeOnly(hora + 1, 0)));
+            }
+
+            DateTime fechaActual = DateTime.Now.Date;
+            DateTime finDeSemana = fechaActual.AddDays(6);
+
+            var horariosAGuardar = new List<HorarioDisponible>();
+            for (DateTime fecha = fechaActual; fecha <= finDeSemana; fecha = fecha.AddDays(1))
+            {
+                foreach (var horario in horarios)
+                {
+                    bool existe = await _context.HorarioDisponibles.AnyAsync(h =>
+                        h.FechaHorario == DateOnly.FromDateTime(fecha) &&
+                        h.HoraInicio == horario.Inicio &&
+                        h.HoraFin == horario.Fin);
+
+                    if (!existe)
+                    {
+                        bool disponible = !(horario.Inicio == new TimeOnly(19, 0) && horario.Fin == new TimeOnly(20, 0));
+
+                        horariosAGuardar.Add(new HorarioDisponible
+                        {
+                            IdCancha = 1,
+                            FechaHorario = DateOnly.FromDateTime(fecha),
+                            HoraInicio = horario.Inicio,
+                            HoraFin = horario.Fin,
+                            DisponibleHorario = disponible
+                        });
+                    }
+                }
+            }
+
+            if (horariosAGuardar.Any())
+            {
+                _context.HorarioDisponibles.AddRange(horariosAGuardar);
+                await _context.SaveChangesAsync();
+                TempData["Message"] = "Horarios generados exitosamente para la semana.";
+            }
+            else
+            {
+                TempData["Message"] = "No se generaron horarios porque ya existen.";
+            }
+
+            return RedirectToAction("ManageView", "Horario");
+        }
+
         public async Task<IActionResult> GenerarFechasYHorariosDelMes()
         {
             var horarios = new List<(TimeOnly Inicio, TimeOnly Fin)>
@@ -90,6 +141,37 @@ namespace ProyectoHsj_Beta.Controllers
             var horarios = await _context.HorarioDisponibles.ToListAsync();
             return View(horarios);
             
+        }
+
+        [HttpGet]
+        public IActionResult CreateHorario()
+        {
+            // Muestra el formulario para crear un nuevo horario.
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateHorario(HoraViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var horario = new HorarioDisponible
+                {
+                    IdCancha = model.IdCancha,
+                    FechaHorario = DateOnly.FromDateTime(model.FechaHorario),
+                    HoraInicio = model.HoraInicio,
+                    HoraFin = model.HoraFin,
+                    DisponibleHorario = model.DisponibleHorario
+                };
+
+                _context.HorarioDisponibles.Add(horario);
+                await _context.SaveChangesAsync();
+
+                TempData["Message"] = "Horario creado exitosamente.";
+                return RedirectToAction("ManageView");
+            }
+
+            return View(model);
         }
 
         public async Task<IActionResult> EditarHorario(int id)

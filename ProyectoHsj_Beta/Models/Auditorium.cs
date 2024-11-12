@@ -15,6 +15,8 @@ public partial class Auditorium
 
     public int IdAccionRealizada { get; set; }
 
+    public string Seccion { get; set; } = null!;
+
     public virtual AccionRealizadum IdAccionRealizadaNavigation { get; set; } = null!;
 
     public virtual Usuario IdUsuarioNavigation { get; set; } = null!;

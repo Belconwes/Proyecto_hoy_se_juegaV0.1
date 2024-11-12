@@ -3,6 +3,78 @@
     ViewData["Title"] = "Panel de Administración - Reservas";
 }
 
+<style>
+    h2 {
+        color: white; /* Color del título en blanco */
+        text-align: center;
+        margin-top: 20px;
+        margin-bottom: 30px;
+    }
+
+    #calendar {
+        max-width: 90%;
+        margin: 0 auto;
+        border: 1px solid black; /* Bordes del calendario */
+        border-radius: 10px; /* Bordes redondeados */
+        overflow: hidden; /* Para el desbordamiento */
+        background-color: white; /* Fondo blanco para el calendario */
+        z-index: 1; /* Asegurar que el calendario esté por delante */
+        position: relative; /* Posición relativa para el z-index */
+    }
+
+    .fc-daygrid-day {
+        border: 1px solid #e0e0e0; /* Bordes de los días */
+    }
+
+        .fc-daygrid-day.fc-day {
+            color: black !important; /* Aseguramos que el texto de los días sea negro */
+        }
+
+    .fc-toolbar-title {
+        text-transform: capitalize; /* Capitalizar la primera letra de cada mes */
+        color: black; /* Color del texto del título del calendario en negro */
+    }
+
+    .fc-toolbar h2 {
+        color: black; /* Asegura que el mes y año también estén en negro */
+    }
+
+    .fc-col-header-cell {
+        text-transform: capitalize; /* Capitalizar la primera letra de los días de la semana */
+        color: black; /* Color del texto de los días de la semana en negro */
+    }
+
+    .modal-content {
+        border-radius: 10px; /* Bordes redondeados para el modal */
+    }
+
+    .modal-header {
+        background-color: black; /* Color de fondo del encabezado del modal */
+        color: white; /* Color del texto del encabezado */
+    }
+
+    .modal-footer {
+        border-top: none; /* Quitar borde superior */
+    }
+
+    .modal-body p {
+        margin: 0; /* Sin margen en los párrafos del modal */
+    }
+
+    .btn {
+        border-radius: 5px; /* Bordes redondeados para botones */
+    }
+
+    .btn-secondary {
+        background-color: #6c757d; /* Color personalizado para el botón secundario */
+        border: none; /* Sin borde */
+    }
+
+        .btn-secondary:hover {
+            background-color: #5a6268; /* Color al pasar el mouse */
+        }
+</style>
+
 <h2>@ViewData["Title"]</h2>
 
 <!-- Contenedor del Calendario -->
@@ -40,7 +112,11 @@
     document.addEventListener('DOMContentLoaded', function () {
         let calendarEl = document.getElementById('calendar');
         let calendar = new FullCalendar.Calendar(calendarEl, {
+            locale: 'es', // Cambiar idioma a español
             initialView: 'dayGridMonth',
+            buttonText: {
+                today: 'Hoy' // Cambiar el texto del botón "Today" a "Hoy"
+            },
             events: '/Admin/GetReservas', // Cargar eventos desde el backend
 
             // Al hacer clic en una fecha, mostrar el modal con todas las reservas de esa fecha
@@ -55,13 +131,13 @@
 
                     reservasEnFecha.forEach(reserva => {
                         reservasHtml += `
-                            <p><strong>Reserva ID:</strong> ${reserva.extendedProps.idReserva}</p>
-                            <p><strong>Estado:</strong> ${reserva.extendedProps.estado}</p>
-                            <p><strong>Nombre Usuario:</strong> ${reserva.extendedProps.usuarioNombre}</p>
-                            <p><strong>Teléfono Usuario:</strong> ${reserva.extendedProps.usuarioTelefono}</p>
-                            <p><strong>Fecha Reserva:</strong> ${new Date(reserva.start).toLocaleString()}</p>
-                            <hr />
-                        `;
+                                        <p><strong>Reserva ID:</strong> ${reserva.extendedProps.idReserva}</p>
+                                        <p><strong>Estado:</strong> ${reserva.extendedProps.estado}</p>
+                                        <p><strong>Nombre Usuario:</strong> ${reserva.extendedProps.usuarioNombre}</p>
+                                        <p><strong>Teléfono Usuario:</strong> ${reserva.extendedProps.usuarioTelefono}</p>
+                                        <p><strong>Fecha Reserva:</strong> ${new Date(reserva.start).toLocaleString()}</p>
+                                        <hr />
+                                    `;
                     });
 
                     // Insertamos el contenido en el modal

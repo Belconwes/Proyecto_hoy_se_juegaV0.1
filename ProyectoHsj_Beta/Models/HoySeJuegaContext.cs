@@ -42,7 +42,9 @@ public partial class HoySeJuegaContext : DbContext
     public virtual DbSet<TituloReporte> TituloReportes { get; set; }
 
     public virtual DbSet<Usuario> Usuarios { get; set; }
-   
+
+    public DbSet<ConfiguracionPago> ConfiguracionPagos { get; set; }
+
     public DbSet<HistorialReserva> HistorialReservas { get; set;}
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) { }
@@ -78,6 +80,7 @@ public partial class HoySeJuegaContext : DbContext
                 .HasColumnName("Fecha_Auditoria");
             entity.Property(e => e.IdAccionRealizada).HasColumnName("ID_accion_realizada");
             entity.Property(e => e.IdUsuario).HasColumnName("ID_usuario");
+            entity.Property(e => e.Seccion).HasMaxLength(100).HasColumnName("Seccion");
 
             entity.HasOne(d => d.IdAccionRealizadaNavigation).WithMany(p => p.Auditoria)
                 .HasForeignKey(d => d.IdAccionRealizada)
@@ -371,6 +374,25 @@ public partial class HoySeJuegaContext : DbContext
             entity.Property(e => e.NombreUsuario).HasMaxLength(100);
             entity.Property(e => e.TelefonoUsuario).HasMaxLength(15);
         });
+
+        modelBuilder.Entity<ConfiguracionPago>(entity =>
+        {
+            entity.ToTable("CONFIGURACION_PAGO");
+
+            entity.HasKey(e => e.IdConfiguracion);
+
+            entity.Property(e => e.IdConfiguracion)
+                  .HasColumnName("ID_Configuracion");
+
+            entity.Property(e => e.MontoSena)
+                  .IsRequired()
+                  .HasColumnName("Monto_Sena");
+
+            entity.Property(e => e.FechaModificacion)
+                  .HasColumnName("Fecha_Modificacion")
+                  .HasDefaultValueSql("GETDATE()");
+        });
+
 
         OnModelCreatingPartial(modelBuilder);
     }

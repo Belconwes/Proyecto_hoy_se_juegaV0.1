@@ -1,19 +1,56 @@
 ﻿@model IEnumerable<ProyectoHsj_Beta.Models.HorarioDisponible>
 
 @{
-    
     ViewData["Title"] = "Horarios Disponibles";
     Layout = "~/Views/Shared/Layout_admin.cshtml";
 }
 
-<h1 style="color:bisque">
-    Hi this is Manage View for reservas jijij
-</h1>
+<style>
+    h1 {
+        color: bisque;
+        text-align: center; /* Centra el encabezado */
+        margin-top: 20px; /* Espacio en la parte superior */
+    }
+
+    .card {
+        border-radius: 15px; /* Bordes redondeados */
+        max-width: 800px; /* Ancho máximo */
+        margin: 20px auto; /* Centrando el card */
+    }
+
+    .btn-danger, .btn-warning, .btn-primary {
+        border-radius: 5px; /* Bordes redondeados para botones */
+    }
+
+    .table {
+        margin-top: 20px; /* Espacio superior para la tabla */
+    }
+
+    .alert {
+        border-radius: 5px; /* Bordes redondeados para alertas */
+    }
+
+    .form-group {
+        margin-bottom: 15px; /* Espacio inferior para los grupos de formulario */
+    }
+
+    .action-buttons {
+        display: flex;
+        justify-content: space-between; /* Espaciado entre los botones */
+        margin-bottom: 20px; /* Espacio inferior para el contenedor de botones */
+    }
+
+    .search-container {
+        margin-bottom: 20px; /* Espacio inferior para el contenedor de búsqueda */
+    }
+</style>
+
+<h1></h1>
 
 <!-- Cuadro (card) para contener los horarios -->
-<div class="card shadow-lg mx-auto mt-4" style="max-width: 800px;">
+<div class="card shadow-lg">
     <div class="card-header bg-primary text-white">
-        <h5 class="mb-0">Lista de Horarios</h5>
+        <h5 class="mb-0">Gestión de Horarios</h5>
     </div>
     <!-- Mensaje de éxito o error -->
     @if (TempData["Message"] != null)
@@ -28,28 +65,40 @@
             @TempData["ErrorMessage"]
         </div>
     }
+
     <div class="card-body">
         <!-- Formulario de búsqueda -->
-        <div class="card-body">
+        <div class="search-container">
             <form asp-action="Search" method="get" class="mb-4">
                 <div class="row">
-                    <div class="col-md-5">
+                    <div class="col-md-5 form-group">
                         <label for="fecha">Fecha:</label>
                         <input type="date" id="fecha" name="fecha" class="form-control" />
                     </div>
-                    <div class="col-md-5">
+                    <div class="col-md-5 form-group">
                         <label for="horaInicio">Hora Inicio:</label>
                         <input type="time" id="horaInicio" name="horaInicio" class="form-control" />
                     </div>
-                    <div class="col-md-2 align-self-end">
+                    <div class="col-md-2 form-group align-self-end">
                         <button type="submit" class="btn btn-primary">Buscar</button>
                     </div>
                 </div>
             </form>
-        <!-- Botón para eliminar todos los horarios -->
-        <form asp-action="EliminarTodosLosHorarios" method="post" class="mb-3">
-            <button type="submit" class="btn btn-danger">Eliminar Todos los Horarios</button>
-        </form>
+        </div>
+
+        <!-- Botones para generar y eliminar horarios -->
+        <div class="action-buttons">
+            <form asp-action="EliminarTodosLosHorarios" method="post">
+                <button type="submit" class="btn btn-danger">Eliminar Todos los Horarios</button>
+            </form>
+            <button type="button" class="btn btn-primary" onclick="location.href='@Url.Action("GenerarFechasYHorariosSemana", "Horario")'">
+                Generar Horarios de la Semana
+            </button>
+        </div>
+        <!-- Boton para crear horarios -->
+        <div class="mb-3">
+            <a asp-action="CreateHorario" class="btn btn-primary">Crear Nuevo Horario</a>
+        </div>
 
         @if (!Model.Any())
         {
@@ -59,14 +108,14 @@
         }
         else
         {
-            <table class="table table-bordered">
+            <table class="table table-bordered table-striped">
                 <thead class="thead-dark">
                     <tr>
                         <th>Fecha</th>
                         <th>Hora Inicio</th>
                         <th>Hora Fin</th>
-                        <th>Acciones</th>
                         <th>Disponibilidad</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -91,7 +140,7 @@
                                     <input type="hidden" name="id" value="@horario.IdHorarioDisponible" />
                                     <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
                                 </form>
-                                <a asp-for ="" asp-action="EditarHorario" asp-route-id="@horario.IdHorarioDisponible" class="btn btn-warning btn-sm">
+                                <a asp-action="EditarHorario" asp-route-id="@horario.IdHorarioDisponible" class="btn btn-warning btn-sm">
                                     Editar
                                 </a>
                             </td>
@@ -102,7 +151,3 @@
         }
     </div>
 </div>
-
-<button type="button" class="btn btn-primary" onclick="location.href='@Url.Action("GenerarFechasYHorariosDelMes", "Horario")'">
-    Generar Horarios del Mes
-</button>
